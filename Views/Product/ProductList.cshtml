@@ -1,0 +1,31 @@
+@model List<MVC031.Models.ProductModel>
+
+<h2>Products</h2>
+
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-end text-muted">
+                    <span>Price</span>
+                </div>
+                <div class="text-center">
+                    <img src="@item.ImageURL" alt="@item.ProductName"
+                         style="width:150px; height:150px; object-fit:cover;"
+                         onerror="this.src='https://via.placeholder.com/150'" />
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a asp-action="ProductDetail" asp-route-id="@item.ProductID">
+                            @item.ProductName
+                        </a>
+                    </h5>
+                    <p class="card-text text-muted">@item.Description</p>
+                    <p class="fw-bold">@item.ProductPrice.ToString("N0") đ</p>
+                    <button class="btn btn-primary">Add To Cart</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
