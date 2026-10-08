@@ -36,36 +36,34 @@
 
 @section Scripts {
     <script>
-        $(function () {
-            $(".btn-add-to-cart").on("click", function () {
-                var $btn = $(this);
-                $btn.prop("disabled", true);
+        document.querySelectorAll(".btn-add-to-cart").forEach(function (btn) {
+            btn.addEventListener("click", async function () {
+                const msg = document.getElementById("cart-message");
+                const token = document.querySelector("input[name='__RequestVerificationToken']").value;
+                btn.disabled = true;
 
-                $.ajax({
-                    url: "@Url.Action("AddToCart", "Cart")",
-                    type: "POST",
-                    data: {
-                        id: $btn.data("id"),
-                        quantity: 1,
-                        __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
-                    },
-                    success: function (res) {
-                        $("#cart-count").text(res.cartCount);
-                        $("#cart-message")
-                            .removeClass("d-none alert-danger")
-                            .addClass("alert-success")
-                            .text(res.message);
-                    },
-                    error: function () {
-                        $("#cart-message")
-                            .removeClass("d-none alert-success")
-                            .addClass("alert-danger")
-                            .text("Không thể thêm sản phẩm vào giỏ hàng.");
-                    },
-                    complete: function () {
-                        $btn.prop("disabled", false);
-                    }
-                });
+                try {
+                    const response = await fetch("@Url.Action("AddToCart", "Cart")", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: new URLSearchParams({
+                            id: btn.dataset.id,
+                            quantity: 1,
+                            __RequestVerificationToken: token
+                        })
+                    });
+                    if (!response.ok) throw new Error();
+
+                    const res = await response.json();
+                    document.getElementById("cart-count").textContent = res.cartCount;
+                    msg.className = "alert alert-success";
+                    msg.textContent = res.message;
+                } catch {
+                    msg.className = "alert alert-danger";
+                    msg.textContent = "Không thể thêm sản phẩm vào giỏ hàng.";
+                } finally {
+                    btn.disabled = false;
+                }
             });
         });
     </script>
