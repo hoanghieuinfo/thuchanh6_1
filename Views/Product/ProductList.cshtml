@@ -2,6 +2,10 @@
 
 <h2>Products</h2>
 
+@Html.AntiForgeryToken()
+
+<div id="cart-message" class="alert d-none" role="alert"></div>
+
 <div class="row">
     @foreach (var item in Model)
     {
@@ -23,9 +27,44 @@
                     </h5>
                     <p class="card-text text-muted">@item.Description</p>
                     <p class="fw-bold">@item.ProductPrice.ToString("N0") đ</p>
-                    <button class="btn btn-primary">Add To Cart</button>
+                    <button type="button" class="btn btn-primary btn-add-to-cart" data-id="@item.ProductID">Add To Cart</button>
                 </div>
             </div>
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll(".btn-add-to-cart").forEach(function (btn) {
+            btn.addEventListener("click", async function () {
+                const msg = document.getElementById("cart-message");
+                const token = document.querySelector("input[name='__RequestVerificationToken']").value;
+                btn.disabled = true;
+
+                try {
+                    const response = await fetch("@Url.Action("AddToCart", "Cart")", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: new URLSearchParams({
+                            id: btn.dataset.id,
+                            quantity: 1,
+                            __RequestVerificationToken: token
+                        })
+                    });
+                    if (!response.ok) throw new Error();
+
+                    const res = await response.json();
+                    document.getElementById("cart-count").textContent = res.cartCount;
+                    msg.className = "alert alert-success";
+                    msg.textContent = res.message;
+                } catch {
+                    msg.className = "alert alert-danger";
+                    msg.textContent = "Không thể thêm sản phẩm vào giỏ hàng.";
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        });
+    </script>
+}
