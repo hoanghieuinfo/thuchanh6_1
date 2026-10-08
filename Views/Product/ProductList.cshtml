@@ -2,6 +2,10 @@
 
 <h2>Products</h2>
 
+@Html.AntiForgeryToken()
+
+<div id="cart-message" class="alert d-none" role="alert"></div>
+
 <div class="row">
     @foreach (var item in Model)
     {
@@ -23,9 +27,46 @@
                     </h5>
                     <p class="card-text text-muted">@item.Description</p>
                     <p class="fw-bold">@item.ProductPrice.ToString("N0") đ</p>
-                    <button class="btn btn-primary">Add To Cart</button>
+                    <button type="button" class="btn btn-primary btn-add-to-cart" data-id="@item.ProductID">Add To Cart</button>
                 </div>
             </div>
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $(".btn-add-to-cart").on("click", function () {
+                var $btn = $(this);
+                $btn.prop("disabled", true);
+
+                $.ajax({
+                    url: "@Url.Action("AddToCart", "Cart")",
+                    type: "POST",
+                    data: {
+                        id: $btn.data("id"),
+                        quantity: 1,
+                        __RequestVerificationToken: $("input[name='__RequestVerificationToken']").val()
+                    },
+                    success: function (res) {
+                        $("#cart-count").text(res.cartCount);
+                        $("#cart-message")
+                            .removeClass("d-none alert-danger")
+                            .addClass("alert-success")
+                            .text(res.message);
+                    },
+                    error: function () {
+                        $("#cart-message")
+                            .removeClass("d-none alert-success")
+                            .addClass("alert-danger")
+                            .text("Không thể thêm sản phẩm vào giỏ hàng.");
+                    },
+                    complete: function () {
+                        $btn.prop("disabled", false);
+                    }
+                });
+            });
+        });
+    </script>
+}
